@@ -1,0 +1,84 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  loans     Loan[]
+
+  @@map("customers")
+}
+
+model Loan {
+  id             String    @id @default(uuid())
+  customerId     String
+  customer       Customer  @relation(fields: [customerId], references: [id])
+  loanNumber     String    @unique
+  loanDate       DateTime
+  loanAmount     Float
+  interestRate   Float
+  itemName       String
+  grossWeight    Float
+  stoneWeight    Float
+  netWeight      Float
+  estimatedValue Float
+  paymentMode    PaymentMode
+  status         LoanStatus @default(ACTIVE)
+  createdAt      DateTime  @default(now())
+
+  transactions   LoanTransaction[]
+
+  @@map("loans")
+}
+
+enum PaymentMode {
+  CASH
+  BANK
+}
+
+enum LoanStatus {
+  ACTIVE
+  CLOSED
+}
+
+model LoanTransaction {
+  id                 String          @id @default(uuid())
+  loanId             String
+  loan               Loan            @relation(fields: [loanId], references: [id])
+  transactionType    TransactionType
+  amount             Float
+  principalComponent Float           @default(0)
+  interestComponent  Float           @default(0)
+  transactionDate    DateTime
+  remarks            String?
+  createdAt          DateTime        @default(now())
+
+  @@map("loan_transactions")
+}
+
+enum TransactionType {
+  LOAN_DISBURSEMENT
+  PAYMENT
+  ADJUSTMENT
+}
+
+model JournalEntry {
+  id            String   @id @default(uuid())
+  voucherNo     String
+  date          DateTime
+  account       String
+  debit         Float    @default(0)
+  credit        Float    @default(0)
+  referenceType String?
+  referenceId   String?
+  createdAt     DateTime @default(now())
+
+  @@map("journal_entries")
+}
